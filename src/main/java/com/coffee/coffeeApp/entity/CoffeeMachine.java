@@ -65,11 +65,11 @@ public class CoffeeMachine {
     private Facility facility;
     
     // One-to-Many relationship with UsageHistory
-    @OneToMany(mappedBy = "coffeeMachine", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "coffeeMachine", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<UsageHistory> usageHistories;
     
     // One-to-Many relationship with AlertLog
-    @OneToMany(mappedBy = "coffeeMachine", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "coffeeMachine", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<AlertLog> alertLogs;
     
     // Constructors

@@ -3,6 +3,7 @@ package com.coffee.coffeeApp.service;
 import com.coffee.coffeeApp.dto.FacilityDto;
 import com.coffee.coffeeApp.dto.CoffeeMachineDto;
 import com.coffee.coffeeApp.entity.Facility;
+import com.coffee.coffeeApp.entity.CoffeeMachine;
 import com.coffee.coffeeApp.repository.FacilityRepository;
 import com.coffee.coffeeApp.repository.CoffeeMachineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,7 @@ public class FacilityService {
     @Autowired
     private CoffeeMachineRepository coffeeMachineRepository;
     
-    @Autowired
-    private CoffeeMachineService coffeeMachineService;
+    // Removed circular dependency - will use repository directly
     
     // Create new facility
     public FacilityDto createFacility(FacilityDto facilityDto) {
@@ -115,7 +115,11 @@ public class FacilityService {
         Optional<FacilityDto> facilityOpt = getFacilityById(facilityId);
         if (facilityOpt.isPresent()) {
             FacilityDto facility = facilityOpt.get();
-            List<CoffeeMachineDto> machines = coffeeMachineService.getMachinesByFacilityId(facilityId);
+            // Get machines directly from repository to avoid circular dependency
+            List<CoffeeMachineDto> machines = coffeeMachineRepository.findByFacilityIdAndIsActiveTrue(facilityId)
+                    .stream()
+                    .map(this::convertCoffeeMachineToDto)
+                    .collect(Collectors.toList());
             facility.setMachines(machines);
             return Optional.of(facility);
         }
@@ -281,6 +285,22 @@ public class FacilityService {
         facility.setLocation(dto.getLocation());
         facility.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
         return facility;
+    }
+    
+    // Helper method to convert CoffeeMachine entity to DTO
+    private CoffeeMachineDto convertCoffeeMachineToDto(CoffeeMachine machine) {
+        CoffeeMachineDto dto = new CoffeeMachineDto();
+        dto.setId(machine.getId());
+        dto.setFacilityId(machine.getFacilityId());
+        dto.setStatus(machine.getStatus());
+        dto.setTemperature(machine.getTemperature());
+        dto.setWaterLevel(machine.getWaterLevel());
+        dto.setMilkLevel(machine.getMilkLevel());
+        dto.setBeansLevel(machine.getBeansLevel());
+        dto.setIsActive(machine.getIsActive());
+        dto.setCreationDate(machine.getCreationDate());
+        dto.setLastUpdate(machine.getLastUpdate());
+        return dto;
     }
     
     // Inner classes for statistics

@@ -100,7 +100,7 @@ public class UsageHistoryService {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
-    
+
     // Get today's usage
     @Transactional(readOnly = true)
     public List<UsageHistoryDto> getTodayUsage() {

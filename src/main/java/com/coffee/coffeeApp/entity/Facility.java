@@ -38,7 +38,7 @@ public class Facility {
     private LocalDateTime lastUpdate;
     
     // One-to-Many relationship with CoffeeMachine
-    @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<CoffeeMachine> coffeeMachines;
     
     // Constructors
