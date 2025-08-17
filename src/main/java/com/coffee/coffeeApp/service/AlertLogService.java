@@ -95,6 +95,16 @@ public class AlertLogService {
                 .collect(Collectors.toList());
     }
     
+    // Create alert from DTO
+    public AlertLogDto createAlert(AlertLogDto alertDto) {
+        if (alertDto.getId() == null || alertDto.getId().isEmpty()) {
+            alertDto.setId(UUID.randomUUID().toString());
+        }
+        AlertLog alert = convertToEntity(alertDto);
+        AlertLog savedAlert = alertLogRepository.save(alert);
+        return convertToDto(savedAlert);
+    }
+
     // Get alerts by type
     @Transactional(readOnly = true)
     public List<AlertLogDto> getAlertsByType(String alertType) {
@@ -255,6 +265,16 @@ public class AlertLogService {
         return savedAlerts.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+    
+    // Delete alert (soft delete)
+    public void deleteAlert(String alertId) {
+        AlertLog alert = alertLogRepository.findById(alertId)
+                .filter(AlertLog::getIsActive)
+                .orElseThrow(() -> new IllegalArgumentException("Alert not found: " + alertId));
+        
+        alert.setIsActive(false);
+        alertLogRepository.save(alert);
     }
     
     // Conversion methods

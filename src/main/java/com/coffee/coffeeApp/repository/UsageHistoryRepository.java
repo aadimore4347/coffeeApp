@@ -108,7 +108,7 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Stri
     List<UsageHistory> findRecentUsage(@Param("since") LocalDateTime since);
     
     // Get average usage per day
-    @Query("SELECT AVG(dailyCount) FROM (SELECT DATE(uh.timestamp), COUNT(uh) as dailyCount FROM UsageHistory uh " +
+    @Query("SELECT AVG(dailyCount) FROM (SELECT DATE(uh.timestamp) as date, COUNT(uh) as dailyCount FROM UsageHistory uh " +
            "WHERE uh.isActive = true GROUP BY DATE(uh.timestamp)) as dailyUsage")
     Double getAverageUsagePerDay();
     
