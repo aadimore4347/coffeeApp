@@ -10,13 +10,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface AlertLogRepository extends JpaRepository<AlertLog, String> {
+public interface AlertLogRepository extends JpaRepository<AlertLog, Long> {
     
     // Find active alerts
     List<AlertLog> findByIsActiveTrueOrderByTimestampDesc();
     
     // Find alerts by machine
-    List<AlertLog> findByMachineIdAndIsActiveTrueOrderByTimestampDesc(String machineId);
+    List<AlertLog> findByCoffeeMachineIdAndIsActiveTrueOrderByTimestampDesc(Long machineId);
     
     // Find alerts by type
     List<AlertLog> findByAlertTypeAndIsActiveTrueOrderByTimestampDesc(String alertType);

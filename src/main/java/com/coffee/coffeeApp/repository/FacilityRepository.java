@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface FacilityRepository extends JpaRepository<Facility, String> {
+public interface FacilityRepository extends JpaRepository<Facility, Long> {
     
     // Find active facilities
     List<Facility> findByIsActiveTrue();

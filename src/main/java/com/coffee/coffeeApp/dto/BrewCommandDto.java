@@ -4,16 +4,16 @@ import jakarta.validation.constraints.*;
 
 public class BrewCommandDto {
     
-    @NotBlank(message = "Machine ID is required")
-    private String machineId;
+    @NotNull(message = "Machine ID is required")
+    private Long machineId;
     
     @NotBlank(message = "Brew type is required")
     @Pattern(regexp = "ESPRESSO|AMERICANO|LATTE|CAPPUCCINO|MACCHIATO|MOCHA|BLACK_COFFEE|CUSTOM", 
              message = "Invalid brew type")
     private String brewType;
     
-    @NotBlank(message = "User ID is required")
-    private String userId;
+    @NotNull(message = "User ID is required")
+    private Long userId;
     
     // Customization options
     @DecimalMin(value = "0.5", message = "Size must be at least 0.5")
@@ -42,18 +42,18 @@ public class BrewCommandDto {
     // Constructors
     public BrewCommandDto() {}
     
-    public BrewCommandDto(String machineId, String brewType, String userId) {
+    public BrewCommandDto(Long machineId, String brewType, Long userId) {
         this.machineId = machineId;
         this.brewType = brewType;
         this.userId = userId;
     }
     
     // Getters and Setters
-    public String getMachineId() {
+    public Long getMachineId() {
         return machineId;
     }
     
-    public void setMachineId(String machineId) {
+    public void setMachineId(Long machineId) {
         this.machineId = machineId;
     }
     
@@ -65,11 +65,11 @@ public class BrewCommandDto {
         this.brewType = brewType;
     }
     
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
     
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
     
@@ -137,20 +137,34 @@ public class BrewCommandDto {
         this.specialInstructions = specialInstructions;
     }
     
+    // Business logic methods
+    public boolean requiresMilk() {
+        return "LATTE".equals(brewType) || "CAPPUCCINO".equals(brewType) || 
+               "MACCHIATO".equals(brewType) || "MOCHA".equals(brewType) ||
+               (milkRatio != null && milkRatio > 0.0f);
+    }
+    
+    public boolean isCustomBrew() {
+        return "CUSTOM".equals(brewType);
+    }
+    
+    public boolean hasSpecialRequests() {
+        return (extraHot != null && extraHot) || 
+               (extraFoam != null && extraFoam) || 
+               (decaf != null && decaf) ||
+               (specialInstructions != null && !specialInstructions.trim().isEmpty());
+    }
+    
     @Override
     public String toString() {
         return "BrewCommandDto{" +
-                "machineId='" + machineId + '\'' +
+                "machineId=" + machineId +
                 ", brewType='" + brewType + '\'' +
-                ", userId='" + userId + '\'' +
+                ", userId=" + userId +
                 ", size=" + size +
                 ", strength=" + strength +
                 ", milkRatio=" + milkRatio +
                 ", temperature=" + temperature +
-                ", extraHot=" + extraHot +
-                ", extraFoam=" + extraFoam +
-                ", decaf=" + decaf +
-                ", specialInstructions='" + specialInstructions + '\'' +
                 '}';
     }
 }

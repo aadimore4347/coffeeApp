@@ -7,10 +7,10 @@ import java.util.List;
 
 public class CoffeeMachineDto {
     
-    private String id;
+    private Long id;
     
-    @NotBlank(message = "Facility ID is required")
-    private String facilityId;
+    @NotNull(message = "Facility ID is required")
+    private Long facilityId;
     
     @NotBlank(message = "Status is required")
     @Pattern(regexp = "ON|OFF", message = "Status must be either ON or OFF")
@@ -48,12 +48,11 @@ public class CoffeeMachineDto {
     private Long todayUsageCount;
     private Long activeAlertCount;
     private List<AlertLogDto> recentAlerts;
-    private List<UsageHistoryDto> recentUsage;
     
     // Constructors
     public CoffeeMachineDto() {}
     
-    public CoffeeMachineDto(String id, String facilityId, String status) {
+    public CoffeeMachineDto(Long id, Long facilityId, String status) {
         this.id = id;
         this.facilityId = facilityId;
         this.status = status;
@@ -61,36 +60,33 @@ public class CoffeeMachineDto {
         this.waterLevel = 100.0f;
         this.milkLevel = 100.0f;
         this.beansLevel = 100.0f;
-        this.temperature = 0.0f;
+        this.temperature = 85.0f;
     }
     
-    // Business logic methods
-    public Boolean getIsLowWaterLevel() {
-        return waterLevel != null && waterLevel < 20.0f;
-    }
-    
-    public Boolean getIsLowMilkLevel() {
-        return milkLevel != null && milkLevel < 20.0f;
-    }
-    
-    public Boolean getIsLowBeansLevel() {
-        return beansLevel != null && beansLevel < 20.0f;
+    public CoffeeMachineDto(Long facilityId, String status) {
+        this.facilityId = facilityId;
+        this.status = status;
+        this.isActive = true;
+        this.waterLevel = 100.0f;
+        this.milkLevel = 100.0f;
+        this.beansLevel = 100.0f;
+        this.temperature = 85.0f;
     }
     
     // Getters and Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
     
-    public String getFacilityId() {
+    public Long getFacilityId() {
         return facilityId;
     }
     
-    public void setFacilityId(String facilityId) {
+    public void setFacilityId(Long facilityId) {
         this.facilityId = facilityId;
     }
     
@@ -246,31 +242,50 @@ public class CoffeeMachineDto {
         this.recentAlerts = recentAlerts;
     }
     
-    public List<UsageHistoryDto> getRecentUsage() {
-        return recentUsage;
+    // Business logic methods
+    public boolean isActive() {
+        return this.isActive != null && this.isActive;
     }
     
-    public void setRecentUsage(List<UsageHistoryDto> recentUsage) {
-        this.recentUsage = recentUsage;
+    public boolean isOn() {
+        return "ON".equals(this.status);
+    }
+    
+    public boolean isOperational() {
+        return isOn() && isActive() && 
+               waterLevel != null && waterLevel > 10.0f &&
+               milkLevel != null && milkLevel > 10.0f &&
+               beansLevel != null && beansLevel > 10.0f;
+    }
+    
+    public boolean hasLowSupplies() {
+        return (waterLevel != null && waterLevel < 20.0f) ||
+               (milkLevel != null && milkLevel < 20.0f) ||
+               (beansLevel != null && beansLevel < 20.0f);
+    }
+    
+    public boolean hasCriticalSupplies() {
+        return (waterLevel != null && waterLevel < 10.0f) ||
+               (milkLevel != null && milkLevel < 10.0f) ||
+               (beansLevel != null && beansLevel < 10.0f);
+    }
+    
+    public boolean needsMaintenance() {
+        return hasCriticalSupplies() || !isOperational();
     }
     
     @Override
     public String toString() {
         return "CoffeeMachineDto{" +
-                "id='" + id + '\'' +
-                ", facilityId='" + facilityId + '\'' +
+                "id=" + id +
+                ", facilityId=" + facilityId +
                 ", status='" + status + '\'' +
                 ", temperature=" + temperature +
                 ", waterLevel=" + waterLevel +
                 ", milkLevel=" + milkLevel +
                 ", beansLevel=" + beansLevel +
                 ", isActive=" + isActive +
-                ", isOperational=" + isOperational +
-                ", hasLowSupplies=" + hasLowSupplies +
-                ", totalUsageCount=" + totalUsageCount +
-                ", activeAlertCount=" + activeAlertCount +
-                ", creationDate=" + creationDate +
-                ", lastUpdate=" + lastUpdate +
+                ", isOperational=" + isOperational() +
                 '}';
     }
 }

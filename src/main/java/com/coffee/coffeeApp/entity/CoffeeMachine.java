@@ -12,16 +12,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "CoffeeMachine")
+@Table(name = "coffee_machines")
 public class CoffeeMachine {
     
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private String id;
+    private Long id;
     
-    @NotBlank(message = "Facility ID is required")
-    @Column(name = "facilityId", nullable = false)
-    private String facilityId;
+    // Foreign key relationship with Facility
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facility_id", nullable = false)
+    @NotNull(message = "Facility is required")
+    private Facility facility;
     
     @NotBlank(message = "Status is required")
     @Column(name = "status", nullable = false)
@@ -34,95 +37,66 @@ public class CoffeeMachine {
     
     @DecimalMin(value = "0.0", message = "Water level must be between 0 and 100")
     @DecimalMax(value = "100.0", message = "Water level must be between 0 and 100")
-    @Column(name = "waterLevel")
+    @Column(name = "water_level")
     private Float waterLevel;
     
     @DecimalMin(value = "0.0", message = "Milk level must be between 0 and 100")
     @DecimalMax(value = "100.0", message = "Milk level must be between 0 and 100")
-    @Column(name = "milkLevel")
+    @Column(name = "milk_level")
     private Float milkLevel;
     
     @DecimalMin(value = "0.0", message = "Beans level must be between 0 and 100")
     @DecimalMax(value = "100.0", message = "Beans level must be between 0 and 100")
-    @Column(name = "beansLevel")
+    @Column(name = "beans_level")
     private Float beansLevel;
     
     @NotNull(message = "Active status is required")
-    @Column(name = "isActive", nullable = false)
+    @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
     
     @CreationTimestamp
-    @Column(name = "creationDate", nullable = false, updatable = false)
+    @Column(name = "creation_date", nullable = false, updatable = false)
     private LocalDateTime creationDate;
     
     @UpdateTimestamp
-    @Column(name = "lastUpdate", nullable = false)
+    @Column(name = "last_update", nullable = false)
     private LocalDateTime lastUpdate;
     
-    // Many-to-One relationship with Facility
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "facilityId", referencedColumnName = "id", insertable = false, updatable = false)
-    private Facility facility;
-    
-    // One-to-Many relationship with UsageHistory
+    // One-to-Many relationships
     @OneToMany(mappedBy = "coffeeMachine", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<UsageHistory> usageHistories;
+    private List<UsageHistory> usageHistory;
     
-    // One-to-Many relationship with AlertLog
     @OneToMany(mappedBy = "coffeeMachine", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AlertLog> alertLogs;
     
     // Constructors
     public CoffeeMachine() {}
     
-    public CoffeeMachine(String id, String facilityId, String status) {
-        this.id = id;
-        this.facilityId = facilityId;
+    public CoffeeMachine(Facility facility, String status) {
+        this.facility = facility;
         this.status = status;
         this.isActive = true;
-        // Initialize levels to 100%
         this.waterLevel = 100.0f;
         this.milkLevel = 100.0f;
         this.beansLevel = 100.0f;
-        this.temperature = 0.0f;
-    }
-    
-    // Business Logic Methods
-    public boolean isLowWaterLevel() {
-        return waterLevel != null && waterLevel < 20.0f;
-    }
-    
-    public boolean isLowMilkLevel() {
-        return milkLevel != null && milkLevel < 20.0f;
-    }
-    
-    public boolean isLowBeansLevel() {
-        return beansLevel != null && beansLevel < 20.0f;
-    }
-    
-    public boolean hasLowSupplies() {
-        return isLowWaterLevel() || isLowMilkLevel() || isLowBeansLevel();
-    }
-    
-    public boolean isOperational() {
-        return "ON".equalsIgnoreCase(status) && isActive && !hasLowSupplies();
+        this.temperature = 85.0f;
     }
     
     // Getters and Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
     
-    public String getFacilityId() {
-        return facilityId;
+    public Facility getFacility() {
+        return facility;
     }
     
-    public void setFacilityId(String facilityId) {
-        this.facilityId = facilityId;
+    public void setFacility(Facility facility) {
+        this.facility = facility;
     }
     
     public String getStatus() {
@@ -189,20 +163,12 @@ public class CoffeeMachine {
         this.lastUpdate = lastUpdate;
     }
     
-    public Facility getFacility() {
-        return facility;
+    public List<UsageHistory> getUsageHistory() {
+        return usageHistory;
     }
     
-    public void setFacility(Facility facility) {
-        this.facility = facility;
-    }
-    
-    public List<UsageHistory> getUsageHistories() {
-        return usageHistories;
-    }
-    
-    public void setUsageHistories(List<UsageHistory> usageHistories) {
-        this.usageHistories = usageHistories;
+    public void setUsageHistory(List<UsageHistory> usageHistory) {
+        this.usageHistory = usageHistory;
     }
     
     public List<AlertLog> getAlertLogs() {
@@ -213,19 +179,49 @@ public class CoffeeMachine {
         this.alertLogs = alertLogs;
     }
     
+    // Business logic methods
+    public boolean isActive() {
+        return this.isActive != null && this.isActive;
+    }
+    
+    public boolean isOn() {
+        return "ON".equals(this.status);
+    }
+    
+    public boolean isOperational() {
+        return isOn() && isActive() && 
+               waterLevel != null && waterLevel > 10.0f &&
+               milkLevel != null && milkLevel > 10.0f &&
+               beansLevel != null && beansLevel > 10.0f;
+    }
+    
+    public boolean hasLowSupplies() {
+        return (waterLevel != null && waterLevel < 20.0f) ||
+               (milkLevel != null && milkLevel < 20.0f) ||
+               (beansLevel != null && beansLevel < 20.0f);
+    }
+    
+    public boolean hasCriticalSupplies() {
+        return (waterLevel != null && waterLevel < 10.0f) ||
+               (milkLevel != null && milkLevel < 10.0f) ||
+               (beansLevel != null && beansLevel < 10.0f);
+    }
+    
+    public boolean needsMaintenance() {
+        return hasCriticalSupplies() || !isOperational();
+    }
+    
     @Override
     public String toString() {
         return "CoffeeMachine{" +
-                "id='" + id + '\'' +
-                ", facilityId='" + facilityId + '\'' +
+                "id=" + id +
+                ", facilityId=" + (facility != null ? facility.getId() : null) +
                 ", status='" + status + '\'' +
                 ", temperature=" + temperature +
                 ", waterLevel=" + waterLevel +
                 ", milkLevel=" + milkLevel +
                 ", beansLevel=" + beansLevel +
                 ", isActive=" + isActive +
-                ", creationDate=" + creationDate +
-                ", lastUpdate=" + lastUpdate +
                 '}';
     }
 }
