@@ -7,7 +7,7 @@ import java.util.List;
 
 public class FacilityDto {
     
-    private String id;
+    private Long id;
     
     @NotBlank(message = "Facility name is required")
     private String name;
@@ -29,19 +29,25 @@ public class FacilityDto {
     // Constructors
     public FacilityDto() {}
     
-    public FacilityDto(String id, String name, String location) {
+    public FacilityDto(Long id, String name, String location) {
         this.id = id;
         this.name = name;
         this.location = location;
         this.isActive = true;
     }
     
+    public FacilityDto(String name, String location) {
+        this.name = name;
+        this.location = location;
+        this.isActive = true;
+    }
+    
     // Getters and Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
     
@@ -125,19 +131,39 @@ public class FacilityDto {
         this.machines = machines;
     }
     
+    // Business logic methods
+    public boolean isActive() {
+        return this.isActive != null && this.isActive;
+    }
+    
+    public boolean hasActiveMachines() {
+        return activeMachines != null && activeMachines > 0;
+    }
+    
+    public boolean hasOperationalMachines() {
+        return operationalMachines != null && operationalMachines > 0;
+    }
+    
+    public boolean hasLowSupplyIssues() {
+        return machinesWithLowSupplies != null && machinesWithLowSupplies > 0;
+    }
+    
+    public Double getOperationalPercentage() {
+        if (totalMachines == null || totalMachines == 0) {
+            return 0.0;
+        }
+        return (operationalMachines != null ? operationalMachines.doubleValue() : 0.0) / totalMachines.doubleValue() * 100.0;
+    }
+    
     @Override
     public String toString() {
         return "FacilityDto{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", location='" + location + '\'' +
                 ", isActive=" + isActive +
                 ", totalMachines=" + totalMachines +
-                ", activeMachines=" + activeMachines +
                 ", operationalMachines=" + operationalMachines +
-                ", machinesWithLowSupplies=" + machinesWithLowSupplies +
-                ", creationDate=" + creationDate +
-                ", lastUpdate=" + lastUpdate +
                 '}';
     }
 }

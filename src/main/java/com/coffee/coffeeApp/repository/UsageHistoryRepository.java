@@ -10,16 +10,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface UsageHistoryRepository extends JpaRepository<UsageHistory, String> {
+public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Long> {
     
     // Find active usage records
     List<UsageHistory> findByIsActiveTrue();
     
     // Find usage by machine
-    List<UsageHistory> findByMachineIdAndIsActiveTrueOrderByTimestampDesc(String machineId);
+    List<UsageHistory> findByCoffeeMachineIdAndIsActiveTrueOrderByTimestampDesc(Long machineId);
     
     // Find usage by user
-    List<UsageHistory> findByUserAndIsActiveTrueOrderByTimestampDesc(String userId);
+    List<UsageHistory> findByUserIdAndIsActiveTrueOrderByTimestampDesc(Long userId);
     
     // Find usage by brew type
     List<UsageHistory> findByBrewTypeAndIsActiveTrueOrderByTimestampDesc(String brewType);
@@ -30,9 +30,9 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Stri
                                           @Param("endDate") LocalDateTime endDate);
     
     // Find usage by machine within date range
-    @Query("SELECT uh FROM UsageHistory uh WHERE uh.machineId = :machineId AND uh.timestamp BETWEEN :startDate AND :endDate " +
+    @Query("SELECT uh FROM UsageHistory uh WHERE uh.coffeeMachine.id = :machineId AND uh.timestamp BETWEEN :startDate AND :endDate " +
            "AND uh.isActive = true ORDER BY uh.timestamp DESC")
-    List<UsageHistory> findUsageByMachineAndDateRange(@Param("machineId") String machineId,
+    List<UsageHistory> findUsageByMachineAndDateRange(@Param("machineId") Long machineId,
                                                     @Param("startDate") LocalDateTime startDate, 
                                                     @Param("endDate") LocalDateTime endDate);
     

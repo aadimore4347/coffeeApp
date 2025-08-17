@@ -8,10 +8,13 @@ import java.time.LocalDateTime;
 
 public class UsageHistoryDto {
     
-    private String id;
+    private Long id;
     
-    @NotBlank(message = "Machine ID is required")
-    private String machineId;
+    @NotNull(message = "Machine ID is required")
+    private Long machineId;
+    
+    @NotNull(message = "User ID is required")
+    private Long userId;
     
     @NotNull(message = "Timestamp is required")
     private LocalDateTime timestamp;
@@ -21,56 +24,67 @@ public class UsageHistoryDto {
              message = "Invalid brew type")
     private String brewType;
     
-    @NotBlank(message = "User is required")
-    private String user;
-    
     private Boolean isActive;
     private LocalDateTime creationDate;
     private LocalDateTime lastUpdate;
     
     // Additional fields for API responses
-    private String machineFacilityId;
+    private Long machineFacilityId;
     private String machineFacilityName;
     private String machineFacilityLocation;
     private String userName;
     private String userRole;
     
+    // Brewing parameters
+    private Float sizeMultiplier;
+    private Float strengthMultiplier;
+    private Float milkRatio;
+    private Float brewTemperature;
+    private String specialInstructions;
+    
     // Constructors
     public UsageHistoryDto() {}
     
-    public UsageHistoryDto(String id, String machineId, String brewType, String user) {
+    public UsageHistoryDto(Long id, Long machineId, Long userId, String brewType) {
         this.id = id;
         this.machineId = machineId;
+        this.userId = userId;
         this.brewType = brewType;
-        this.user = user;
         this.timestamp = LocalDateTime.now();
         this.isActive = true;
     }
     
-    // Business logic methods
-    public Boolean getIsRecentUsage() {
-        return timestamp != null && timestamp.isAfter(LocalDateTime.now().minusHours(24));
-    }
-    
-    public Boolean getIsTodayUsage() {
-        return timestamp != null && timestamp.toLocalDate().equals(LocalDateTime.now().toLocalDate());
+    public UsageHistoryDto(Long machineId, Long userId, String brewType) {
+        this.machineId = machineId;
+        this.userId = userId;
+        this.brewType = brewType;
+        this.timestamp = LocalDateTime.now();
+        this.isActive = true;
     }
     
     // Getters and Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
     
-    public String getMachineId() {
+    public Long getMachineId() {
         return machineId;
     }
     
-    public void setMachineId(String machineId) {
+    public void setMachineId(Long machineId) {
         this.machineId = machineId;
+    }
+    
+    public Long getUserId() {
+        return userId;
+    }
+    
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
     
     public LocalDateTime getTimestamp() {
@@ -87,14 +101,6 @@ public class UsageHistoryDto {
     
     public void setBrewType(String brewType) {
         this.brewType = brewType;
-    }
-    
-    public String getUser() {
-        return user;
-    }
-    
-    public void setUser(String user) {
-        this.user = user;
     }
     
     public Boolean getIsActive() {
@@ -121,11 +127,11 @@ public class UsageHistoryDto {
         this.lastUpdate = lastUpdate;
     }
     
-    public String getMachineFacilityId() {
+    public Long getMachineFacilityId() {
         return machineFacilityId;
     }
     
-    public void setMachineFacilityId(String machineFacilityId) {
+    public void setMachineFacilityId(Long machineFacilityId) {
         this.machineFacilityId = machineFacilityId;
     }
     
@@ -161,19 +167,76 @@ public class UsageHistoryDto {
         this.userRole = userRole;
     }
     
+    public Float getSizeMultiplier() {
+        return sizeMultiplier;
+    }
+    
+    public void setSizeMultiplier(Float sizeMultiplier) {
+        this.sizeMultiplier = sizeMultiplier;
+    }
+    
+    public Float getStrengthMultiplier() {
+        return strengthMultiplier;
+    }
+    
+    public void setStrengthMultiplier(Float strengthMultiplier) {
+        this.strengthMultiplier = strengthMultiplier;
+    }
+    
+    public Float getMilkRatio() {
+        return milkRatio;
+    }
+    
+    public void setMilkRatio(Float milkRatio) {
+        this.milkRatio = milkRatio;
+    }
+    
+    public Float getBrewTemperature() {
+        return brewTemperature;
+    }
+    
+    public void setBrewTemperature(Float brewTemperature) {
+        this.brewTemperature = brewTemperature;
+    }
+    
+    public String getSpecialInstructions() {
+        return specialInstructions;
+    }
+    
+    public void setSpecialInstructions(String specialInstructions) {
+        this.specialInstructions = specialInstructions;
+    }
+    
+    // Business logic methods
+    public boolean isActive() {
+        return this.isActive != null && this.isActive;
+    }
+    
+    public boolean isToday() {
+        return timestamp != null && 
+               timestamp.toLocalDate().equals(LocalDateTime.now().toLocalDate());
+    }
+    
+    public boolean isRecent(int hours) {
+        return timestamp != null && 
+               timestamp.isAfter(LocalDateTime.now().minusHours(hours));
+    }
+    
+    public boolean requiresMilk() {
+        return "LATTE".equals(brewType) || "CAPPUCCINO".equals(brewType) || 
+               "MACCHIATO".equals(brewType) || "MOCHA".equals(brewType) ||
+               (milkRatio != null && milkRatio > 0.0f);
+    }
+    
     @Override
     public String toString() {
         return "UsageHistoryDto{" +
-                "id='" + id + '\'' +
-                ", machineId='" + machineId + '\'' +
-                ", timestamp=" + timestamp +
+                "id=" + id +
+                ", machineId=" + machineId +
+                ", userId=" + userId +
                 ", brewType='" + brewType + '\'' +
-                ", user='" + user + '\'' +
-                ", userName='" + userName + '\'' +
-                ", machineFacilityName='" + machineFacilityName + '\'' +
+                ", timestamp=" + timestamp +
                 ", isActive=" + isActive +
-                ", creationDate=" + creationDate +
-                ", lastUpdate=" + lastUpdate +
                 '}';
     }
 }

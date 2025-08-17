@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public class UserDto {
     
-    private String id;
+    private Long id;
     
     @NotBlank(message = "Username is required")
     private String username;
@@ -23,19 +23,25 @@ public class UserDto {
     // Constructors
     public UserDto() {}
     
-    public UserDto(String id, String username, String role) {
+    public UserDto(Long id, String username, String role) {
         this.id = id;
         this.username = username;
         this.role = role;
         this.isActive = true;
     }
     
+    public UserDto(String username, String role) {
+        this.username = username;
+        this.role = role;
+        this.isActive = true;
+    }
+    
     // Getters and Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
     
@@ -79,15 +85,27 @@ public class UserDto {
         this.lastUpdate = lastUpdate;
     }
     
+    // Business logic methods
+    public boolean isAdmin() {
+        return "ADMIN".equals(this.role);
+    }
+    
+    public boolean isFacilityUser() {
+        return "FACILITY".equals(this.role);
+    }
+    
+    public boolean isActive() {
+        return this.isActive != null && this.isActive;
+    }
+    
     @Override
     public String toString() {
         return "UserDto{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", username='" + username + '\'' +
                 ", role='" + role + '\'' +
                 ", isActive=" + isActive +
                 ", creationDate=" + creationDate +
-                ", lastUpdate=" + lastUpdate +
                 '}';
     }
 }

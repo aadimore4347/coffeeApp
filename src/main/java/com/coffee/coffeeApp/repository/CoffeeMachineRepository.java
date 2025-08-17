@@ -11,19 +11,19 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CoffeeMachineRepository extends JpaRepository<CoffeeMachine, String> {
+public interface CoffeeMachineRepository extends JpaRepository<CoffeeMachine, Long> {
     
     // Find active machines
     List<CoffeeMachine> findByIsActiveTrue();
     
     // Find machines by facility
-    List<CoffeeMachine> findByFacilityIdAndIsActiveTrue(String facilityId);
+    List<CoffeeMachine> findByFacilityIdAndIsActiveTrue(Long facilityId);
     
     // Find machines by status
     List<CoffeeMachine> findByStatusAndIsActiveTrue(String status);
     
     // Find machines by facility and status
-    List<CoffeeMachine> findByFacilityIdAndStatusAndIsActiveTrue(String facilityId, String status);
+    List<CoffeeMachine> findByFacilityIdAndStatusAndIsActiveTrue(Long facilityId, String status);
     
     // Find machines with low water level
     @Query("SELECT cm FROM CoffeeMachine cm WHERE cm.waterLevel < :threshold AND cm.isActive = true")
