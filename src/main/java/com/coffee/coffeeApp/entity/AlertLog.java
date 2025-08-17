@@ -9,19 +9,22 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "AlertLog")
+@Table(name = "alert_logs")
 public class AlertLog {
     
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private String id;
+    private Long id;
     
-    @NotBlank(message = "Machine ID is required")
-    @Column(name = "machineId", nullable = false)
-    private String machineId;
+    // Foreign key relationship with CoffeeMachine
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "machine_id", nullable = false)
+    @NotNull(message = "Coffee machine is required")
+    private CoffeeMachine coffeeMachine;
     
     @NotBlank(message = "Alert type is required")
-    @Column(name = "alertType", nullable = false)
+    @Column(name = "alert_type", nullable = false)
     private String alertType; // LOW_WATER, LOW_MILK, LOW_BEANS, MALFUNCTION, etc.
     
     @NotBlank(message = "Message is required")
@@ -33,86 +36,58 @@ public class AlertLog {
     private LocalDateTime timestamp;
     
     @NotNull(message = "Active status is required")
-    @Column(name = "isActive", nullable = false)
+    @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
     
+    @Column(name = "is_resolved", nullable = false)
+    private Boolean isResolved = false;
+    
+    @Column(name = "resolved_at")
+    private LocalDateTime resolvedAt;
+    
+    @Column(name = "severity")
+    private String severity; // CRITICAL, HIGH, MEDIUM, LOW
+    
+    @Column(name = "category")
+    private String category; // SUPPLY, TECHNICAL, MAINTENANCE
+    
     @CreationTimestamp
-    @Column(name = "creationDate", nullable = false, updatable = false)
+    @Column(name = "creation_date", nullable = false, updatable = false)
     private LocalDateTime creationDate;
     
     @UpdateTimestamp
-    @Column(name = "lastUpdate", nullable = false)
+    @Column(name = "last_update", nullable = false)
     private LocalDateTime lastUpdate;
-    
-    // Many-to-One relationship with CoffeeMachine
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "machineId", referencedColumnName = "id", insertable = false, updatable = false)
-    private CoffeeMachine coffeeMachine;
     
     // Constructors
     public AlertLog() {}
     
-    public AlertLog(String id, String machineId, String alertType, String message) {
-        this.id = id;
-        this.machineId = machineId;
+    public AlertLog(CoffeeMachine coffeeMachine, String alertType, String message) {
+        this.coffeeMachine = coffeeMachine;
         this.alertType = alertType;
         this.message = message;
         this.timestamp = LocalDateTime.now();
         this.isActive = true;
-    }
-    
-    // Business Logic Methods
-    public boolean isCriticalAlert() {
-        return "MALFUNCTION".equalsIgnoreCase(alertType) || 
-               "OFFLINE".equalsIgnoreCase(alertType) ||
-               "EMERGENCY".equalsIgnoreCase(alertType);
-    }
-    
-    public boolean isSupplyAlert() {
-        return "LOW_WATER".equalsIgnoreCase(alertType) || 
-               "LOW_MILK".equalsIgnoreCase(alertType) ||
-               "LOW_BEANS".equalsIgnoreCase(alertType);
-    }
-    
-    public boolean isRecentAlert(int hoursAgo) {
-        return timestamp != null && timestamp.isAfter(LocalDateTime.now().minusHours(hoursAgo));
-    }
-    
-    public static AlertLog createLowWaterAlert(String id, String machineId, float currentLevel) {
-        String message = String.format("Water level is critically low: %.1f%%. Please refill immediately.", currentLevel);
-        return new AlertLog(id, machineId, "LOW_WATER", message);
-    }
-    
-    public static AlertLog createLowMilkAlert(String id, String machineId, float currentLevel) {
-        String message = String.format("Milk level is critically low: %.1f%%. Please refill immediately.", currentLevel);
-        return new AlertLog(id, machineId, "LOW_MILK", message);
-    }
-    
-    public static AlertLog createLowBeansAlert(String id, String machineId, float currentLevel) {
-        String message = String.format("Coffee beans level is critically low: %.1f%%. Please refill immediately.", currentLevel);
-        return new AlertLog(id, machineId, "LOW_BEANS", message);
-    }
-    
-    public static AlertLog createMalfunctionAlert(String id, String machineId, String issue) {
-        String message = String.format("Machine malfunction detected: %s. Maintenance required.", issue);
-        return new AlertLog(id, machineId, "MALFUNCTION", message);
+        this.isResolved = false;
+        this.setSeverityBasedOnType(alertType);
+        this.setCategoryBasedOnType(alertType);
     }
     
     // Getters and Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
     
-    public String getMachineId() {
-        return machineId;
+    public CoffeeMachine getCoffeeMachine() {
+        return coffeeMachine;
     }
     
-    public void setMachineId(String machineId) {
-        this.machineId = machineId;
+    public void setCoffeeMachine(CoffeeMachine coffeeMachine) {
+        this.coffeeMachine = coffeeMachine;
     }
     
     public String getAlertType() {
@@ -147,6 +122,41 @@ public class AlertLog {
         this.isActive = isActive;
     }
     
+    public Boolean getIsResolved() {
+        return isResolved;
+    }
+    
+    public void setIsResolved(Boolean isResolved) {
+        this.isResolved = isResolved;
+        if (isResolved && resolvedAt == null) {
+            this.resolvedAt = LocalDateTime.now();
+        }
+    }
+    
+    public LocalDateTime getResolvedAt() {
+        return resolvedAt;
+    }
+    
+    public void setResolvedAt(LocalDateTime resolvedAt) {
+        this.resolvedAt = resolvedAt;
+    }
+    
+    public String getSeverity() {
+        return severity;
+    }
+    
+    public void setSeverity(String severity) {
+        this.severity = severity;
+    }
+    
+    public String getCategory() {
+        return category;
+    }
+    
+    public void setCategory(String category) {
+        this.category = category;
+    }
+    
     public LocalDateTime getCreationDate() {
         return creationDate;
     }
@@ -163,25 +173,99 @@ public class AlertLog {
         this.lastUpdate = lastUpdate;
     }
     
-    public CoffeeMachine getCoffeeMachine() {
-        return coffeeMachine;
+    // Business logic methods
+    public boolean isActive() {
+        return this.isActive != null && this.isActive;
     }
     
-    public void setCoffeeMachine(CoffeeMachine coffeeMachine) {
-        this.coffeeMachine = coffeeMachine;
+    public boolean isResolved() {
+        return this.isResolved != null && this.isResolved;
+    }
+    
+    public boolean isCritical() {
+        return "CRITICAL".equals(this.severity) || 
+               "MALFUNCTION".equals(this.alertType) ||
+               "OFFLINE".equals(this.alertType);
+    }
+    
+    public boolean isSupplyAlert() {
+        return "LOW_WATER".equals(this.alertType) ||
+               "LOW_MILK".equals(this.alertType) ||
+               "LOW_BEANS".equals(this.alertType);
+    }
+    
+    public boolean requiresImmediateAttention() {
+        return isCritical() && !isResolved();
+    }
+    
+    public boolean isToday() {
+        return timestamp != null && 
+               timestamp.toLocalDate().equals(LocalDateTime.now().toLocalDate());
+    }
+    
+    public boolean isRecent(int hours) {
+        return timestamp != null && 
+               timestamp.isAfter(LocalDateTime.now().minusHours(hours));
+    }
+    
+    public void resolve() {
+        this.isResolved = true;
+        this.resolvedAt = LocalDateTime.now();
+    }
+    
+    private void setSeverityBasedOnType(String alertType) {
+        switch (alertType) {
+            case "MALFUNCTION":
+            case "OFFLINE":
+            case "EMERGENCY":
+                this.severity = "CRITICAL";
+                break;
+            case "LOW_WATER":
+            case "LOW_MILK":
+            case "LOW_BEANS":
+                this.severity = "HIGH";
+                break;
+            case "MAINTENANCE":
+                this.severity = "MEDIUM";
+                break;
+            case "TEMPERATURE":
+                this.severity = "LOW";
+                break;
+            default:
+                this.severity = "MEDIUM";
+        }
+    }
+    
+    private void setCategoryBasedOnType(String alertType) {
+        switch (alertType) {
+            case "LOW_WATER":
+            case "LOW_MILK":
+            case "LOW_BEANS":
+                this.category = "SUPPLY";
+                break;
+            case "MALFUNCTION":
+            case "OFFLINE":
+            case "TEMPERATURE":
+                this.category = "TECHNICAL";
+                break;
+            case "MAINTENANCE":
+                this.category = "MAINTENANCE";
+                break;
+            default:
+                this.category = "TECHNICAL";
+        }
     }
     
     @Override
     public String toString() {
         return "AlertLog{" +
-                "id='" + id + '\'' +
-                ", machineId='" + machineId + '\'' +
+                "id=" + id +
+                ", machineId=" + (coffeeMachine != null ? coffeeMachine.getId() : null) +
                 ", alertType='" + alertType + '\'' +
                 ", message='" + message + '\'' +
                 ", timestamp=" + timestamp +
-                ", isActive=" + isActive +
-                ", creationDate=" + creationDate +
-                ", lastUpdate=" + lastUpdate +
+                ", severity='" + severity + '\'' +
+                ", isResolved=" + isResolved +
                 '}';
     }
 }

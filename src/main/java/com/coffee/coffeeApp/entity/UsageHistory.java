@@ -9,87 +9,96 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "UsageHistory")
+@Table(name = "usage_history")
 public class UsageHistory {
     
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private String id;
+    private Long id;
     
-    @NotBlank(message = "Machine ID is required")
-    @Column(name = "machineId", nullable = false)
-    private String machineId;
+    // Foreign key relationship with CoffeeMachine
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "machine_id", nullable = false)
+    @NotNull(message = "Coffee machine is required")
+    private CoffeeMachine coffeeMachine;
+    
+    // Foreign key relationship with User
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @NotNull(message = "User is required")
+    private User user;
     
     @NotNull(message = "Timestamp is required")
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
     
     @NotBlank(message = "Brew type is required")
-    @Column(name = "brewType", nullable = false)
-    private String brewType; // ESPRESSO, AMERICANO, LATTE, CAPPUCCINO, etc.
-    
-    @NotBlank(message = "User is required")
-    @Column(name = "user", nullable = false)
-    private String user; // User ID who made the brew
+    @Column(name = "brew_type", nullable = false)
+    private String brewType; // ESPRESSO, AMERICANO, LATTE, etc.
     
     @NotNull(message = "Active status is required")
-    @Column(name = "isActive", nullable = false)
+    @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
     
     @CreationTimestamp
-    @Column(name = "creationDate", nullable = false, updatable = false)
+    @Column(name = "creation_date", nullable = false, updatable = false)
     private LocalDateTime creationDate;
     
     @UpdateTimestamp
-    @Column(name = "lastUpdate", nullable = false)
+    @Column(name = "last_update", nullable = false)
     private LocalDateTime lastUpdate;
     
-    // Many-to-One relationship with CoffeeMachine
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "machineId", referencedColumnName = "id", insertable = false, updatable = false)
-    private CoffeeMachine coffeeMachine;
+    // Additional brewing parameters
+    @Column(name = "size_multiplier")
+    private Float sizeMultiplier = 1.0f;
     
-    // Many-to-One relationship with User
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user", referencedColumnName = "id", insertable = false, updatable = false)
-    private User userEntity;
+    @Column(name = "strength_multiplier")
+    private Float strengthMultiplier = 1.0f;
+    
+    @Column(name = "milk_ratio")
+    private Float milkRatio = 0.0f;
+    
+    @Column(name = "brew_temperature")
+    private Float brewTemperature;
+    
+    @Column(name = "special_instructions")
+    private String specialInstructions;
     
     // Constructors
     public UsageHistory() {}
     
-    public UsageHistory(String id, String machineId, String brewType, String user) {
-        this.id = id;
-        this.machineId = machineId;
-        this.brewType = brewType;
+    public UsageHistory(CoffeeMachine coffeeMachine, User user, String brewType) {
+        this.coffeeMachine = coffeeMachine;
         this.user = user;
+        this.brewType = brewType;
         this.timestamp = LocalDateTime.now();
         this.isActive = true;
     }
     
-    // Business Logic Methods
-    public boolean isRecentUsage(int hoursAgo) {
-        return timestamp != null && timestamp.isAfter(LocalDateTime.now().minusHours(hoursAgo));
-    }
-    
-    public boolean isTodayUsage() {
-        return timestamp != null && timestamp.toLocalDate().equals(LocalDateTime.now().toLocalDate());
-    }
-    
     // Getters and Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
     
-    public String getMachineId() {
-        return machineId;
+    public CoffeeMachine getCoffeeMachine() {
+        return coffeeMachine;
     }
     
-    public void setMachineId(String machineId) {
-        this.machineId = machineId;
+    public void setCoffeeMachine(CoffeeMachine coffeeMachine) {
+        this.coffeeMachine = coffeeMachine;
+    }
+    
+    public User getUser() {
+        return user;
+    }
+    
+    public void setUser(User user) {
+        this.user = user;
     }
     
     public LocalDateTime getTimestamp() {
@@ -106,14 +115,6 @@ public class UsageHistory {
     
     public void setBrewType(String brewType) {
         this.brewType = brewType;
-    }
-    
-    public String getUser() {
-        return user;
-    }
-    
-    public void setUser(String user) {
-        this.user = user;
     }
     
     public Boolean getIsActive() {
@@ -140,33 +141,70 @@ public class UsageHistory {
         this.lastUpdate = lastUpdate;
     }
     
-    public CoffeeMachine getCoffeeMachine() {
-        return coffeeMachine;
+    public Float getSizeMultiplier() {
+        return sizeMultiplier;
     }
     
-    public void setCoffeeMachine(CoffeeMachine coffeeMachine) {
-        this.coffeeMachine = coffeeMachine;
+    public void setSizeMultiplier(Float sizeMultiplier) {
+        this.sizeMultiplier = sizeMultiplier;
     }
     
-    public User getUserEntity() {
-        return userEntity;
+    public Float getStrengthMultiplier() {
+        return strengthMultiplier;
     }
     
-    public void setUserEntity(User userEntity) {
-        this.userEntity = userEntity;
+    public void setStrengthMultiplier(Float strengthMultiplier) {
+        this.strengthMultiplier = strengthMultiplier;
+    }
+    
+    public Float getMilkRatio() {
+        return milkRatio;
+    }
+    
+    public void setMilkRatio(Float milkRatio) {
+        this.milkRatio = milkRatio;
+    }
+    
+    public Float getBrewTemperature() {
+        return brewTemperature;
+    }
+    
+    public void setBrewTemperature(Float brewTemperature) {
+        this.brewTemperature = brewTemperature;
+    }
+    
+    public String getSpecialInstructions() {
+        return specialInstructions;
+    }
+    
+    public void setSpecialInstructions(String specialInstructions) {
+        this.specialInstructions = specialInstructions;
+    }
+    
+    // Business logic methods
+    public boolean isActive() {
+        return this.isActive != null && this.isActive;
+    }
+    
+    public boolean isToday() {
+        return timestamp != null && 
+               timestamp.toLocalDate().equals(LocalDateTime.now().toLocalDate());
+    }
+    
+    public boolean isRecent(int hours) {
+        return timestamp != null && 
+               timestamp.isAfter(LocalDateTime.now().minusHours(hours));
     }
     
     @Override
     public String toString() {
         return "UsageHistory{" +
-                "id='" + id + '\'' +
-                ", machineId='" + machineId + '\'' +
-                ", timestamp=" + timestamp +
+                "id=" + id +
+                ", machineId=" + (coffeeMachine != null ? coffeeMachine.getId() : null) +
+                ", userId=" + (user != null ? user.getId() : null) +
                 ", brewType='" + brewType + '\'' +
-                ", user='" + user + '\'' +
+                ", timestamp=" + timestamp +
                 ", isActive=" + isActive +
-                ", creationDate=" + creationDate +
-                ", lastUpdate=" + lastUpdate +
                 '}';
     }
 }

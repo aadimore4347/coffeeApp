@@ -10,15 +10,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "Facility")
+@Table(name = "facilities")
 public class Facility {
     
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private String id;
+    private Long id;
     
     @NotBlank(message = "Facility name is required")
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
     
     @NotBlank(message = "Location is required")
@@ -26,15 +27,15 @@ public class Facility {
     private String location;
     
     @NotNull(message = "Active status is required")
-    @Column(name = "isActive", nullable = false)
+    @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
     
     @CreationTimestamp
-    @Column(name = "creationDate", nullable = false, updatable = false)
+    @Column(name = "creation_date", nullable = false, updatable = false)
     private LocalDateTime creationDate;
     
     @UpdateTimestamp
-    @Column(name = "lastUpdate", nullable = false)
+    @Column(name = "last_update", nullable = false)
     private LocalDateTime lastUpdate;
     
     // One-to-Many relationship with CoffeeMachine
@@ -44,19 +45,18 @@ public class Facility {
     // Constructors
     public Facility() {}
     
-    public Facility(String id, String name, String location) {
-        this.id = id;
+    public Facility(String name, String location) {
         this.name = name;
         this.location = location;
         this.isActive = true;
     }
     
     // Getters and Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
     
@@ -108,15 +108,28 @@ public class Facility {
         this.coffeeMachines = coffeeMachines;
     }
     
+    // Business logic methods
+    public boolean isActive() {
+        return this.isActive != null && this.isActive;
+    }
+    
+    public int getMachineCount() {
+        return coffeeMachines != null ? coffeeMachines.size() : 0;
+    }
+    
+    public long getActiveMachineCount() {
+        return coffeeMachines != null ? 
+            coffeeMachines.stream().filter(CoffeeMachine::isActive).count() : 0;
+    }
+    
     @Override
     public String toString() {
         return "Facility{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", location='" + location + '\'' +
                 ", isActive=" + isActive +
                 ", creationDate=" + creationDate +
-                ", lastUpdate=" + lastUpdate +
                 '}';
     }
 }

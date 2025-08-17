@@ -9,15 +9,16 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "User")
+@Table(name = "users")
 public class User {
     
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private String id;
+    private Long id;
     
     @NotBlank(message = "Username is required")
-    @Column(name = "username", nullable = false)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
     
     @NotBlank(message = "Role is required")
@@ -25,33 +26,32 @@ public class User {
     private String role; // FACILITY or ADMIN
     
     @NotNull(message = "Active status is required")
-    @Column(name = "isActive", nullable = false)
+    @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
     
     @CreationTimestamp
-    @Column(name = "creationDate", nullable = false, updatable = false)
+    @Column(name = "creation_date", nullable = false, updatable = false)
     private LocalDateTime creationDate;
     
     @UpdateTimestamp
-    @Column(name = "lastUpdate", nullable = false)
+    @Column(name = "last_update", nullable = false)
     private LocalDateTime lastUpdate;
     
     // Constructors
     public User() {}
     
-    public User(String id, String username, String role) {
-        this.id = id;
+    public User(String username, String role) {
         this.username = username;
         this.role = role;
         this.isActive = true;
     }
     
     // Getters and Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
     
@@ -95,15 +95,27 @@ public class User {
         this.lastUpdate = lastUpdate;
     }
     
+    // Business logic methods
+    public boolean isAdmin() {
+        return "ADMIN".equals(this.role);
+    }
+    
+    public boolean isFacilityUser() {
+        return "FACILITY".equals(this.role);
+    }
+    
+    public boolean isActive() {
+        return this.isActive != null && this.isActive;
+    }
+    
     @Override
     public String toString() {
         return "User{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", username='" + username + '\'' +
                 ", role='" + role + '\'' +
                 ", isActive=" + isActive +
                 ", creationDate=" + creationDate +
-                ", lastUpdate=" + lastUpdate +
                 '}';
     }
 }
