@@ -25,8 +25,7 @@ public class FacilityService {
     @Autowired
     private CoffeeMachineRepository coffeeMachineRepository;
     
-    @Autowired
-    private CoffeeMachineService coffeeMachineService;
+    // Removed circular dependency - will use repository directly
     
     // Create new facility
     public FacilityDto createFacility(FacilityDto facilityDto) {
@@ -115,7 +114,11 @@ public class FacilityService {
         Optional<FacilityDto> facilityOpt = getFacilityById(facilityId);
         if (facilityOpt.isPresent()) {
             FacilityDto facility = facilityOpt.get();
-            List<CoffeeMachineDto> machines = coffeeMachineService.getMachinesByFacilityId(facilityId);
+            // Get machines directly from repository to avoid circular dependency
+            List<CoffeeMachineDto> machines = coffeeMachineRepository.findByFacilityIdAndIsActiveTrue(facilityId)
+                    .stream()
+                    .map(this::convertCoffeeMachineToDto)
+                    .collect(Collectors.toList());
             facility.setMachines(machines);
             return Optional.of(facility);
         }
